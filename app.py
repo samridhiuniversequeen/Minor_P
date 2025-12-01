@@ -64,7 +64,7 @@ if mode == "Single File":
             st.success(f"✅ {anomaly_fraction*100:.1f}% anomalies injected successfully!")
         else:
             non_features = []
-            if time_col:
+            if time_col and time_col in df.columns:
                 non_features.append(time_col)
             X_iso = df.drop(columns=non_features).select_dtypes(include=[np.number])
             if X_iso.empty:
@@ -94,7 +94,7 @@ if mode == "Single File":
                 st.error("No 'Anomaly' column found in the dataset!")
             else:
                 non_features = ["Anomaly"]
-                if time_col:
+                if time_col and time_col in df.columns:
                     non_features.append(time_col)
                 X = df.drop(columns=non_features).select_dtypes(include=[np.number])
                 
@@ -156,7 +156,7 @@ elif mode == "Multiple Files (2-3) Comparison":
     if uploaded_files:
         dfs = []
         file_names = [f.name for f in uploaded_files]
-        time_col = None  # Will be set once
+        time_col = None
         
         for i, uploaded_file in enumerate(uploaded_files):
             df_temp = pd.read_csv(uploaded_file)
@@ -195,11 +195,11 @@ elif mode == "Multiple Files (2-3) Comparison":
                 st.success(f"✅ {anomaly_fraction*100:.1f}% anomalies injected in {file_names[i]}!")
             else:
                 non_features = []
-                if time_col:
+                if time_col and time_col in df_temp.columns:
                     non_features.append(time_col)
                 X_iso = df_temp.drop(columns=non_features).select_dtypes(include=[np.number])
                 if not X_iso.empty:
-                    iso = IsolationForest(contamination=anomaly_fraction, random_state=42 + i)  # Vary per file
+                    iso = IsolationForest(contamination=anomaly_fraction, random_state=42 + i)
                     anomaly_labels = iso.fit_predict(X_iso)
                     df_temp["Anomaly"] = np.where(anomaly_labels == -1, 1, 0)
                     st.success(f"✅ Anomalies detected unsupervised in {file_names[i]} with {anomaly_fraction*100:.1f}% contamination!")
@@ -243,7 +243,7 @@ elif mode == "Multiple Files (2-3) Comparison":
                 st.error("No 'Anomaly' column found!")
             else:
                 non_features = ["Anomaly", "Source"]
-                if time_col:
+                if time_col and time_col in combined_df.columns:
                     non_features.append(time_col)
                 X = combined_df.drop(columns=non_features).select_dtypes(include=[np.number])
                 
